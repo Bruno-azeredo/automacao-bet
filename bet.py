@@ -11,106 +11,196 @@ path = r'C:\Users\Pichau\Downloads\chromedriver-win64 (2)\chromedriver-win64\chr
 driver = webdriver.Chrome(path, options=options)
 
 # URL do site
-url = 'https://superbet.com/pt-br/sport-bets/football/today'
+url = 'https://superbet.com/pt-br/sport-bets/football/live'
 driver.get(url)
 
-# Aguardar o carregamento da página e realizar login manualmente, se necessário
-time.sleep(30)  # Ajuste o tempo conforme necessário para realizar o login
+# Função para realizar login
+def login():
+    time.sleep(5)
+    try:
+        # Clicar no botão "Entrar"
+        entrar_button = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'capitalize') and text()='entrar']"))
+        )
+        entrar_button.click()
+        time.sleep(1)  # Aguardar um tempo para garantir que a ação seja registrada
 
-# Listas para armazenar odds e elementos já selecionados
+        # Digitar o nome de usuário no campo de entrada
+        username_input = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.XPATH, "//input[contains(@class, 'input__field')]"))
+        )
+        username_input.send_keys("bazeredo")
+        time.sleep(1)  # Aguardar um tempo para garantir que a ação seja registrada
+
+        # Digitar a senha no campo de entrada
+        password_input = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'password-input__field')]//input[@type='password']"))
+        )
+        password_input.send_keys("Bazeredo123")
+        time.sleep(1)  # Aguardar um tempo para garantir que a ação seja registrada
+
+        # Clicar no botão "entrar"
+        login_button = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.ID, "login-modal-submit"))
+        )
+        login_button.click()
+        time.sleep(1)  # Aguardar um tempo para garantir que a ação seja registrada
+
+    except Exception as e:
+        print(f"Erro ao realizar login: {e}")
+
+# Listas para armazenar odds e times já selecionados
 selected_odds = []
-selected_elements = []
+selected_teams = []
 
-# Função para monitorar e clicar
+# Valor inicial da aposta
+initial_bet = 1.0
+current_bet = initial_bet
+
+def select_resultado_final_and_chance_dupla():
+    try:
+        # Encontrar todos os botões "Resultado Final"
+        resultado_final_buttons = WebDriverWait(driver, 30).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'market-filters')]"))
+        )
+        for button in resultado_final_buttons:
+            try:
+                # Verificar se o botão contém o texto "Resultado Final"
+                span_text = button.find_element(By.XPATH, ".//span").text
+                if "Resultado Final" in span_text:
+                    button.click()
+                    time.sleep(1)  # Aguardar um tempo para garantir que a ação seja registrada
+
+                    # Tentar encontrar "Empate Anula Aposta"
+                    try:
+                        empate_anula_aposta_element = WebDriverWait(driver, 5).until(
+                            EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'selection-row__title') and text()='Empate Anula Aposta']"))
+                        )
+                        empate_anula_aposta_element.click()
+                        time.sleep(1)
+                    except:
+                        # Tentar encontrar "Chance Dupla"
+                        try:
+                            chance_dupla_element = WebDriverWait(driver, 5).until(
+                                EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'selection-row__title') and text()='Chance Dupla']"))
+                            )
+                            chance_dupla_element.click()
+                            time.sleep(1)
+                        except:
+                            # Tentar encontrar "Total de Gols"
+                            try:
+                                total_gols_element = WebDriverWait(driver, 5).until(
+                                    EC.presence_of_element_located((By.XPATH, "//span[contains(@class, 'selection-row__title') and text()='Total de Gols']"))
+                                )
+                                total_gols_element.click()
+                                time.sleep(1)
+                            except Exception as e:
+                                print(f"Erro ao localizar 'Empate Anula Aposta', 'Chance Dupla' ou 'Total de Gols': {e}")
+                                # Pressionar a tecla "Esc" caso não encontre nenhum dos elementos
+                                webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+                                time.sleep(1)
+            except Exception as e:
+                print(f"Erro ao clicar em 'Resultado Final': {e}")
+    except Exception as e:
+        print(f"Erro ao localizar botões 'Resultado Final': {e}")
+
 def monitor_and_click():
-    repeat_count = 50  # Número de repetições do processo
-    while repeat_count > 0:
+    global current_bet  # Usar a variável global current_bet
+
+    select_resultado_final_and_chance_dupla()  # Realizar seleção antes de procurar odds
+
+    try:
+        # Localizar todos os containers de eventos
+        time.sleep(10)
+        event_containers = WebDriverWait(driver, 30).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//div[@class='event-row-container']"))
+        )
+    except Exception as e:
+        print(f"Erro ao localizar containers de eventos: {e}")
+        driver.refresh()
+        time.sleep(10)
+        return  # Encerrar a execução se houver erro
+
+    for event_container in event_containers:
         try:
-            # Laço para selecionar 3 odds sem repetir
-            for _ in range(3):
-                # Localizar elementos com a classe especificada
-                elements = WebDriverWait(driver, 30).until(
-                    EC.presence_of_all_elements_located((By.XPATH, "//span[contains(@class, 'odd-button__odd-value-new') and contains(@class, 'e2e-odd-current-value')]"))
-                )
-                
-                # Inicializa um índice para percorrer as odds
-                idx = 0
-                
-                while idx < len(elements):
-                    element = elements[idx]
-                    odds_value = float(element.text.strip())
-                    element_id = element.get_attribute("id")  # Usar o atributo ID ou outro identificador único
-                    
-                    if odds_value > 1.20 and odds_value < 1.56 and element_id not in selected_elements:
-                        selected_odds.append(odds_value)
-                        selected_elements.append(element_id)
-                        
-                        button = element.find_element(By.XPATH, ".//ancestor::button[contains(@class, 'odd-button')]")
-                        button.click()
-                        print(f"Elemento com valor {odds_value} e ID {element_id} clicado!")
+            # Obter o nome do time
+            team_name_element = event_container.find_element(By.XPATH, ".//div[contains(@class, 'event-competitor__name')]")
+            team_name = team_name_element.text.strip()
 
-                        # Esperar 20 segundos após o clique
-                        time.sleep(10)
+            if team_name in selected_teams:
+                continue  # Pular times já usados
 
-                        # Localizar o campo de entrada, limpar e inserir o número 5
-                        stake_input = WebDriverWait(driver, 10).until(
-                            EC.presence_of_element_located((By.ID, "stake-0"))
-                        )
-                        stake_input.clear()  # Limpar qualquer valor existente
-                        stake_input.send_keys(Keys.BACKSPACE * 3)  # Apagar o valor existente
-                        stake_input.send_keys("2")  # Inserir o número 5
-                        print("Valor 2 inserido no campo de entrada!")
+            # Localizar todos os botões de odds dentro do container do evento
+            odd_buttons = event_container.find_elements(By.XPATH, ".//button[contains(@class, 'odd-button')]")
+            print(odd_buttons)
+            for button in odd_buttons:
+                try:
+                    # Verificar se o botão ainda está presente e visível
+                    if button.is_displayed():
+                        # Obter o valor da odd
+                        odd_value_element = button.find_element(By.XPATH, ".//span[contains(@class, 'odd-button__odd-value-new')]")
+                        odds_value = float(odd_value_element.text.strip())
 
-                        # Esperar 3 segundos antes de clicar no botão "Fazer aposta"
-                        time.sleep(3)
-                        submit_button = WebDriverWait(driver, 10).until(
-                            EC.presence_of_element_located((By.XPATH, "//button[contains(@class, 'sds-button--primary-elevation') and contains(@class, 'e2e-betslip-submit')]"))
-                        )
-                        submit_button.click()
-                        print("Botão 'Fazer aposta' clicado!")
+                        if odds_value >= 1.10 and odds_value <= 1.30:
+                            selected_teams.append(team_name)
+                            
+                            button.click()
+                            print(f"Botão com valor {odds_value} e time {team_name} clicado!")
 
-                        # Esperar 3 segundos antes de atualizar a página
-                        time.sleep(12)
-                        driver.refresh()
-                        print("Página recarregada com F5!")
-                        time.sleep(3)
-                        break
-                    
-                    # Incrementa o índice para verificar a próxima odd
-                    idx += 1
+                            # Esperar 10 segundos após o clique
+                            time.sleep(10)
 
-            # Após o laço, imprimir o valor do saldo
-            balance_element = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'balance') and contains(@class, 'e2e-balance')]"))
-            )
-            balance_value = balance_element.text.strip().split()[0]
-            print(f"Saldo atual: {balance_value} R$")
+                            # Localizar o campo de entrada, limpar e inserir o valor da aposta
+                            stake_input = WebDriverWait(driver, 10).until(
+                                EC.presence_of_element_located((By.ID, "stake-0"))
+                            )
+                            stake_input.clear()  # Limpar qualquer valor existente
+                            stake_input.send_keys(Keys.BACKSPACE * 3)  # Apagar o valor existente
+                            stake_input.send_keys(str(current_bet))  # Inserir o valor da aposta atual
+                            print(f"Valor {current_bet} inserido no campo de entrada!")
 
-            # Cronômetro de 20 minutos
-            total_time = 10 * 60  # 20 minutos em segundos
-            for remaining in range(total_time, 0, -1):
-                mins, secs = divmod(remaining, 60)
-                timer = f"{mins:02d}:{secs:02d}"
-                print(f"\rTempo restante: {timer}", end="")
-                time.sleep(1)
-            print("\nTempo de espera concluído, atualizando a página...")
+                            # Atualizar o valor da próxima aposta
+                            current_bet = current_bet * odds_value
 
-            driver.refresh()
-            print("Página recarregada!")
+                            # Esperar 3 segundos antes de clicar no botão "Fazer aposta"
+                            time.sleep(3)
+                            submit_button = WebDriverWait(driver, 10).until(
+                                EC.presence_of_element_located((By.XPATH, "//button[contains(@class, 'sds-button--primary-elevation') and contains(@class, 'e2e-betslip-submit')]"))
+                            )
+                            submit_button.click()
+                            print("Botão 'Fazer aposta' clicado!")
 
-            # Esperar 4 segundos após recarregar a página
-            time.sleep(4)
+                            # Esperar 12 segundos antes de atualizar a página
+                            time.sleep(12)
+                            driver.refresh()
+                            print("Página recarregada com F5!")
+                            time.sleep(3)
 
-            # Reduzir o contador de repetições
-            repeat_count -= 1
-            print(f"Processo repetido {50 - repeat_count} vezes!")
+                            break  # Sair do loop após selecionar e apostar em uma odd
+
+                except Exception as e:
+                    print(f"Erro ao processar botão de odd: {e}")
 
         except Exception as e:
-            print(f"Erro: {e}")
-        # Aguardar um intervalo antes de verificar novamente
-        time.sleep(5)
+            print(f"Erro ao processar container de evento: {e}")
+
+    # Esperar 30 minutos antes de fazer a próxima aposta
+    total_time = 30 * 60  # 30 minutos em segundos
+    for remaining in range(total_time, 0, -1):
+        mins, secs = divmod(remaining, 60)
+        timer = f"{mins:02d}:{secs:02d}"
+        print(f"\rTempo restante: {timer}", end="")
+        time.sleep(1)
+    print("\nTempo de espera concluído, atualizando a página...")
+
+    driver.refresh()
+    print("Página recarregada!")
+    time.sleep(4)
+
+    monitor_and_click()  # Repetir o processo
 
 if __name__ == "__main__":
+    login()  # Realizar login primeiro
     monitor_and_click()
 
 # Fechar o navegador
