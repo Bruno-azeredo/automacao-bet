@@ -15,11 +15,12 @@ chrome_options.add_argument("--headless")  # Executa sem abrir o navegador
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
-# Adicionar caminho do Chrome no Heroku
-chrome_options.binary_location = "/app/.heroku/google-chrome"
+# Caminho do Chrome e Chromedriver no Heroku
+chrome_options.binary_location = "/usr/bin/google-chrome"  # Ajuste se necessário
+service = Service("/app/.chrome-for-testing/chromedriver-linux64/chromedriver")  # Caminho correto do Chromedriver
 
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-
+# Inicializa o driver corretamente no Heroku
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # Configuração do logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
