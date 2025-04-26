@@ -9,18 +9,17 @@ import time
 import random  # Biblioteca para escolha aleatória
 import logging
 
+# Configuração do Chrome no Heroku
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--headless")  # Executa sem abrir o navegador
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
 
+# Adicionar caminho do Chrome no Heroku
+chrome_options.binary_location = "/app/.heroku/google-chrome"
 
-# Configuração do WebDriver com webdriver-manager
-options = webdriver.ChromeOptions()  # Definindo options corretamente
-options.add_argument("--start-maximized")
-options.add_argument("--headless")  # Executa sem abrir o navegador
-options.add_argument("--disable-gpu")  # Melhora compatibilidade em alguns sistemas
-options.add_argument("--no-sandbox")  # Necessário para rodar no Heroku
-options.add_argument("--disable-dev-shm-usage")  # Evita problemas de memória
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-# Criar o driver apenas uma vez
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 # Configuração do logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
