@@ -9,14 +9,23 @@ import time
 import random  # Biblioteca para escolha aleatória
 import logging
 
+
+
+# Configuração do WebDriver com webdriver-manager
+options = webdriver.ChromeOptions()  # Definindo options corretamente
+options.add_argument("--start-maximized")
+options.add_argument("--headless")  # Executa sem abrir o navegador
+options.add_argument("--disable-gpu")  # Melhora compatibilidade em alguns sistemas
+options.add_argument("--no-sandbox")  # Necessário para rodar no Heroku
+options.add_argument("--disable-dev-shm-usage")  # Evita problemas de memória
+
+# Criar o driver apenas uma vez
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
 # Configuração do logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 
-# Configuração do WebDriver com webdriver-manager
-options = webdriver.ChromeOptions()
-options.add_argument("--start-maximized")
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 # URL do site
 url = 'https://superbet.com/pt-br/sport-bets/football/today'
@@ -123,8 +132,16 @@ def access_random_event_link(event_links):
         # Navegar para o link escolhido
         driver.get(random_link)
         time.sleep(5)  # Aguarde para garantir que a página carregue completamente
+
+        # Esperar e clicar no elemento especificado
+        target_button = WebDriverWait(driver, 30).until(
+            EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[1]/aside/div[2]/div[3]/button[2]"))
+        )
+        target_button.click()
+        logger.info("Botão após abrir link aleatório clicado com sucesso!")
+
     except Exception as e:
-        logger.error(f"Erro ao acessar o link: {e}")
+        logger.error(f"Erro ao acessar o link ou clicar no botão: {e}")
 
 
 # Função para clicar no elemento especificado após acessar o link
@@ -138,7 +155,7 @@ def click_target_element():
         target_button.click()
         logger.info("Elemento clicado com sucesso!")
     except Exception as e:
-        logger.error(f"Erro ao clicar no elemento: {e}")
+        logger.error(f"Erro ao clicar no elemento (click_target_element): {e}")
 
 # Função para clicar no novo elemento especificado
 def click_element_in_div():
@@ -150,7 +167,7 @@ def click_element_in_div():
         target_element.click()
         logger.info("Novo elemento clicado com sucesso!")
     except Exception as e:
-        logger.error(f"Erro ao clicar no novo elemento: {e}")
+        logger.error(f"Erro ao clicar no novo elemento (click_element_in_div): {e}")
 
 # Função para clicar no elemento, desde que o número seja menor ou igual a 1.10
 def click_element_based_on_condition():
@@ -168,9 +185,9 @@ def click_element_based_on_condition():
             target_element_value.click()
             logger.info("Elemento clicado com sucesso, valor satisfaz condição!")
         else:
-            logger.warning(f"Elemento não clicado. Valor ({value}) maior que 1.10.")
+            logger.warning(f"Elemento não clicado. Valor ({value}) maior que 1.15.")
     except Exception as e:
-        logger.error(f"Erro ao localizar ou interagir com o elemento: {e}")
+        logger.error(f"Erro ao localizar ou interagir com o elemento (click_element_based_on_condition): {e}")
 
 # Função para clicar no botão no rodapé
 def click_footer_button():
@@ -197,7 +214,7 @@ def enter_and_input_number():
         webdriver.ActionChains(driver).key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
         
         # Digitar o número 5
-        input_element.send_keys("5")
+        input_element.send_keys("1")
         logger.info("Número 5 digitado no elemento com sucesso!")
     except Exception as e:
         logger.error(f"Erro ao interagir com o elemento e digitar o número 5: {e}")
