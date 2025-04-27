@@ -1,0 +1,23 @@
+name: Automação Selenium
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Executa às 3h da manhã
+
+jobs:
+  executar-script:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Instalar Chrome e ChromeDriver
+        run: |
+          choco install googlechrome
+          choco install chromedriver
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Executar Script
+        run: python auto_aposta.py
