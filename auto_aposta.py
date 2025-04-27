@@ -17,7 +17,8 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
 # Caminho do Chrome e Chromedriver no Heroku
-chrome_options.binary_location = "/app/.chrome-for-testing/chrome-linux64/google-chrome"
+chrome_options.binary_location = "/app/.chrome-for-testing/chrome-linux64/chrome"
+
 service = Service("/app/.chrome-for-testing/chromedriver-linux64/chromedriver")
 
 # Inicializa o driver corretamente no Heroku
