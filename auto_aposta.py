@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger()
 
 # URL do site
-url = 'https://superbet.com/pt-br/sport-bets/football/today'
+url = 'https://superbet.bet.br/apostas/ao-vivo'
 
 def accept_cookies():
     try:
