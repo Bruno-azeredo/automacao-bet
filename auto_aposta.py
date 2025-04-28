@@ -22,10 +22,6 @@ options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 options.add_argument("--disable-blink-features=AutomationControlled")
 
-
-
-
-
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 # Configuração do logging
@@ -50,7 +46,7 @@ def login():
         WebDriverWait(driver, 50).until(
             EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 'capitalize') and text()='entrar']"))
         ).click()
-        
+
         username = os.getenv("SUPERBET_USERNAME", "bazeredo")  # Pega usuário da variável de ambiente
         password = os.getenv("SUPERBET_PASSWORD", "Bazeredo123-")  # Mesma coisa para a senha
 
@@ -74,9 +70,14 @@ def login():
         webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
         logger.info("Login realizado com sucesso.")
-
     except Exception as e:
         logger.error(f"Erro no login: {e}")
+
+def print_page_source():
+    # Imprime o HTML completo da página
+    page_source = driver.page_source
+    logger.info("HTML da página carregada:")
+    logger.info(page_source)  # Isso imprimirá o código HTML da página carregada
 
 def capture_event_links():
     try:
@@ -180,6 +181,7 @@ def click_final_button():
 if __name__ == "__main__":
     driver.get(url)
     accept_cookies()
+    print_page_source()  # Imprime o HTML após carregar a página
     login()
     links = capture_event_links()
     access_random_event_link(links)
