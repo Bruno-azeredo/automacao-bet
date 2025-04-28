@@ -1,9 +1,9 @@
 name: Automação Selenium
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Permite rodar manualmente
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 3 * * *'  # Agenda para rodar às 3h UTC todo dia
 
 jobs:
   executar-script:
@@ -14,20 +14,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Instalar Google Chrome
-        run: choco install googlechrome
+        run: choco install googlechrome -y
 
-      - name: Baixar ChromeDriver compatível
-        run: |
-          $chrome_version = (Get-Item "C:\Program Files\Google\Chrome\Application\chrome.exe").VersionInfo.ProductVersion
-          $major_version = $chrome_version.Split('.')[0]
-          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$major_version" -OutFile latest.txt
-          $chromedriver_version = Get-Content latest.txt
-          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$chromedriver_version/chromedriver_win32.zip" -OutFile chromedriver.zip
-          Expand-Archive chromedriver.zip -DestinationPath .
-          $env:Path += ";$PWD"
-      
-      - name: Instalar dependências
+      - name: Instalar dependências Python
         run: pip install -r requirements.txt
 
-      - name: Executar Script
+      - name: Executar Script Selenium
         run: python auto_aposta.py
