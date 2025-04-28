@@ -13,3 +13,6 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 driver.get("https://www.google.com")  # Teste de navegação
 print(driver.title)
 driver.quit()
+
+
+
