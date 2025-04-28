@@ -10,8 +10,14 @@ import random
 import logging
 import os  # Para pegar variáveis de ambiente
 
-# Configuração do WebDriver
+# Configuração do WebDriver com Proxy
 options = webdriver.ChromeOptions()
+
+# Configuração do Proxy (substitua com o IP e Porta que você obteve)
+proxy = "47.251.122.81:8888"
+options.add_argument(f"--proxy-server=http://{proxy}")
+
+# Outras opções de configuração do Chrome
 options.add_argument("--start-maximized")
 options.add_argument("--headless=new")  # Novo modo headless
 options.add_argument("--disable-gpu")
