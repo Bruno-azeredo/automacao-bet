@@ -1,23 +1,26 @@
-name: Automação Selenium
+name: Executar aposta automática diariamente
 
 on:
-  workflow_dispatch:  # Permite rodar manualmente
   schedule:
-    - cron: '0 3 * * *'  # Agenda para rodar às 3h UTC todo dia
+    - cron: '0 12 * * *'  # Executa todos os dias às 12h UTC (9h no Brasil, horário de Brasília)
 
 jobs:
-  executar-script:
-    runs-on: windows-latest
+  run-script:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Instalar Google Chrome
-        run: choco install googlechrome -y
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      - name: Instalar dependências Python
+      - name: Instalar dependências
         run: pip install -r requirements.txt
 
-      - name: Executar Script Selenium
-        run: python auto_aposta.py
+      - name: Executar script
+        env:
+          SUPERBET_USERNAME: ${{ secrets.SUPERBET_USERNAME }}
+          SUPERBET_PASSWORD: ${{ secrets.SUPERBET_PASSWORD }}
+        run: python auto_aposta_windows.py
