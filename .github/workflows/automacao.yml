@@ -28,7 +28,7 @@ jobs:
         SUPERBET_USERNAME: ${{ secrets.SUPERBET_USERNAME }}
         SUPERBET_PASSWORD: ${{ secrets.SUPERBET_PASSWORD }}
       run: |
-        python seu_script.py
+        python auto_aposta_windows.py
 
     - name: Upload de screenshots se erro
       if: failure()  # Só executa se o job falhar
