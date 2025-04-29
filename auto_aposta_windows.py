@@ -12,11 +12,15 @@ import os  # Para pegar variáveis de ambiente
 
 # Configuração do WebDriver
 options = webdriver.ChromeOptions()
-options.add_argument("--headless")  # Importante para GitHub Actions
+options.add_argument("--headless")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1920,1080")
+options.add_argument("--disable-blink-features=AutomationControlled")
+options.add_experimental_option("excludeSwitches", ["enable-automation"])
+options.add_experimental_option('useAutomationExtension', False)
+
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
@@ -29,34 +33,35 @@ url = 'https://superbet.com/pt-br/sport-bets/football/today'
 
 def accept_cookies():
     try:
-        accept_cookies_button = WebDriverWait(driver, 30).until(
+        accept_cookies_button = WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
         )
         accept_cookies_button.click()
         logger.info("Cookies aceitos.")
     except Exception as e:
+        driver.save_screenshot('screenshot_error_accept_cookies.png')
         logger.error(f"Erro ao aceitar cookies: {e}")
 
 def login():
     try:
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 'capitalize') and text()='entrar']"))
         ).click()
         
         username = os.getenv("SUPERBET_USERNAME", "bazeredo")  # Pega usuário da variável de ambiente
         password = os.getenv("SUPERBET_PASSWORD", "Bazeredo123-")  # Mesma coisa para a senha
 
-        username_input = WebDriverWait(driver, 30).until(
+        username_input = WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.XPATH, "//input[@class='sds-base-input__input']"))
         )
         username_input.send_keys(username)
 
-        password_input = WebDriverWait(driver, 30).until(
+        password_input = WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.XPATH, "//input[@class='sds-base-input__input' and @type='password']"))
         )
         password_input.send_keys(password)
 
-        login_button = WebDriverWait(driver, 30).until(
+        login_button = WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.ID, "login-modal-submit"))
         )
         login_button.click()
@@ -72,7 +77,7 @@ def login():
 
 def capture_event_links():
     try:
-        event_containers = WebDriverWait(driver, 30).until(
+        event_containers = WebDriverWait(driver, 60).until(
             EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class, 'event-row-container')]"))
         )
         links = []
@@ -99,7 +104,7 @@ def access_random_event_link(links):
         driver.get(random_link)
         logger.info(f"Acessando evento: {random_link}")
 
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[1]/aside/div[2]/div[3]/button[2]"))
         ).click()
         logger.info("Botão inicial clicado.")
@@ -108,7 +113,7 @@ def access_random_event_link(links):
 
 def click_target_element():
     try:
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[1]/div/div[4]/main/div[2]/div/div/div/div/div/div/div/div/div/div[1]/div/div/div/div[2]/div/button"))
         ).click()
         logger.info("Primeiro elemento clicado.")
@@ -117,7 +122,7 @@ def click_target_element():
 
 def click_element_in_div():
     try:
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[1]/div/div[1]/main/div[2]/div/div/div/div/div/div/div/div/div/div[2]/div/div[1]/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/button/div"))
         ).click()
         logger.info("Segundo botão clicado.")
@@ -126,7 +131,7 @@ def click_element_in_div():
 
 def click_element_based_on_condition():
     try:
-        target = WebDriverWait(driver, 30).until(
+        target = WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[1]/div/div[4]/main/div[2]/div/div/div/div/div/div/div/div/div/div[2]/div/div[1]/div[31]/div[3]/div/div/div[1]/button/div"))
         )
         value = float(target.text.strip().replace(",", "."))  # Corrigir caso seja vírgula
@@ -141,7 +146,7 @@ def click_element_based_on_condition():
 
 def click_footer_button():
     try:
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[1]/div/div[1]/div[2]/div/aside/footer/button"))
         ).click()
         logger.info("Botão do rodapé clicado.")
@@ -150,7 +155,7 @@ def click_footer_button():
 
 def enter_and_input_number():
     try:
-        input_field = WebDriverWait(driver, 30).until(
+        input_field = WebDriverWait(driver, 60).until(
             EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[1]/div/div[1]/div[2]/div/aside/footer/div/div/div/section/input"))
         )
         input_field.click()
@@ -162,7 +167,7 @@ def enter_and_input_number():
 
 def click_final_button():
     try:
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 60).until(
             EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[1]/div/div[1]/div[2]/div/aside/footer/div/div/button"))
         ).click()
         logger.info("Botão final clicado.")
